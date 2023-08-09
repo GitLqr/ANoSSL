@@ -19,7 +19,11 @@ class MyApplication : Application() {
             .addInterceptor(LoggerInterceptor("OkHttpUtils"))
             .connectTimeout(10000L, TimeUnit.MILLISECONDS)
             .readTimeout(10000L, TimeUnit.MILLISECONDS)
-            .sslSocketFactory(NoSSLSocketClient.getTLSSocketFactory())
+            // .sslSocketFactory(NoSSLSocketClient.getTLSSocketFactory())
+            .sslSocketFactory(
+                NoSSLSocketClient.getTLSSocketFactory(),
+                NoSSLSocketClient.getX509TrustManager()
+            )
             .hostnameVerifier(NoSSLSocketClient.getHostnameVerifier())
             .build()
         OkHttpUtils.initClient(okHttpClient)

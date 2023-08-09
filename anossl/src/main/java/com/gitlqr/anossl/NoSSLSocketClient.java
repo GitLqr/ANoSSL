@@ -62,7 +62,15 @@ public class NoSSLSocketClient {
      * 获取TrustManager
      */
     public static TrustManager[] getTrustManager() {
-        TrustManager[] trustAllCerts = new TrustManager[]{new X509TrustManager() {
+        TrustManager[] trustAllCerts = new TrustManager[]{getX509TrustManager()};
+        return trustAllCerts;
+    }
+
+    /**
+     * 获取 X509TrustManager
+     */
+    public static X509TrustManager getX509TrustManager() {
+        X509TrustManager x509TrustManager = new X509TrustManager() {
             @Override
             public void checkClientTrusted(X509Certificate[] chain, String authType) {
             }
@@ -75,8 +83,8 @@ public class NoSSLSocketClient {
             public X509Certificate[] getAcceptedIssuers() {
                 return new X509Certificate[]{};
             }
-        }};
-        return trustAllCerts;
+        };
+        return x509TrustManager;
     }
 
     /**
