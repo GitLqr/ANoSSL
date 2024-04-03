@@ -39,7 +39,9 @@ import javax.net.ssl.TrustManager;
  * @since 2023/1/5
  */
 public class TLSSocketFactory extends SSLSocketFactory {
-    private SSLSocketFactory delegate;
+
+    private final String[] enabledProtocols = {"TLSv1.2"}; // {"TLSv1.1", "TLSv1.2"}
+    private final SSLSocketFactory delegate;
 
     public TLSSocketFactory(TrustManager[] tm) throws KeyManagementException, NoSuchAlgorithmException {
         SSLContext context = SSLContext.getInstance("TLS");
@@ -88,8 +90,21 @@ public class TLSSocketFactory extends SSLSocketFactory {
     }
 
     private Socket enableTLSOnSocket(Socket socket) {
-        if (socket != null && (socket instanceof SSLSocket)) {
-            ((SSLSocket) socket).setEnabledProtocols(new String[]{"TLSv1.2"});
+        if ((socket instanceof SSLSocket)) {
+            // ((SSLSocket) socket).setEnabledProtocols(enabledProtocols);
+            /**
+             * FIX: 修复个别设备网络请求时闪退问题
+             * java.lang.ClassCastException: int[] cannot be cast to java.lang.String[]
+             *     at com.android.org.conscrypt.OpenSSLSocketImpl.getEnabledProtocols(OpenSSLSocketImpl.java:802)
+             *     at okhttp3.ConnectionSpec.isCompatible(ConnectionSpec.java:207)
+             */
+            socket = new DelegateSSLSocket((SSLSocket) socket) {
+                @Override
+                public void setEnabledProtocols(String[] protocols) {
+                    // super.setEnabledProtocols(protocols);
+                    super.setEnabledProtocols(enabledProtocols);
+                }
+            };
         }
         return socket;
     }
