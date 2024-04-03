@@ -27,7 +27,10 @@ implementation "com.github.GitLqr:ANoSSL:v1.0.0"
 ```kotlin
 OkHttpClient.Builder().apply {
     // SSL 证书
-    sslSocketFactory(NoSSLSocketClient.getTLSSocketFactory())
+    // sslSocketFactory(NoSSLSocketClient.getSSLSocketFactory(), NoSSLSocketClient.getX509TrustManager())
+    // TLS 证书
+    sslSocketFactory(NoSSLSocketClient.getTLSSocketFactory(), NoSSLSocketClient.getX509TrustManager())
+    // 域名校验
     hostnameVerifier(NoSSLSocketClient.getHostnameVerifier())
     // 其他配置...
 }.build()

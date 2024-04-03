@@ -19,12 +19,12 @@ class MyApplication : Application() {
             .addInterceptor(LoggerInterceptor("OkHttpUtils"))
             .connectTimeout(10000L, TimeUnit.MILLISECONDS)
             .readTimeout(10000L, TimeUnit.MILLISECONDS)
-            // SSL 认证
+            // SSL 证书
             // .sslSocketFactory(
             //     NoSSLSocketClient.getSSLSocketFactory(),
             //     NoSSLSocketClient.getX509TrustManager()
             // )
-            // TLS 认证
+            // TLS 证书
             .sslSocketFactory(
                 NoSSLSocketClient.getTLSSocketFactory(),
                 NoSSLSocketClient.getX509TrustManager()
