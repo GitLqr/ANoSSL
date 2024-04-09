@@ -16,6 +16,7 @@
 package com.gitlqr.anossl;
 
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
@@ -91,7 +92,13 @@ public class TLSSocketFactory extends SSLSocketFactory {
 
     private Socket enableTLSOnSocket(Socket socket) {
         if ((socket instanceof SSLSocket)) {
-            // ((SSLSocket) socket).setEnabledProtocols(enabledProtocols);
+            // 20240405：
+            // Android 4.4 及以下版本可能存在一些奇葩问题，需要自己实现了一个 DelegateSSLSocket 来解决，
+            // 但是 Android 5.0 及以上不要使用，OkHttp 在高版本中会调用一些 DelegateSSLSocket 没有复写的方法，导致 app 崩溃。
+            if (isGeAndroid5()) {
+                ((SSLSocket) socket).setEnabledProtocols(enabledProtocols);
+                return socket;
+            }
             /**
              * FIX: 修复个别设备网络请求时闪退问题
              * java.lang.ClassCastException: int[] cannot be cast to java.lang.String[]
@@ -107,5 +114,18 @@ public class TLSSocketFactory extends SSLSocketFactory {
             };
         }
         return socket;
+    }
+
+    private boolean isGeAndroid5() {
+        try {
+            Class<?> classVersion = Class.forName("android.os.Build$VERSION");
+            Field fieldSdkInt = classVersion.getDeclaredField("SDK_INT");
+            fieldSdkInt.setAccessible(true);
+            int sdkInt = (int) fieldSdkInt.get(null);
+            return sdkInt >= 21;
+        } catch (Exception e) {
+            // e.printStackTrace();
+            return false;
+        }
     }
 }
