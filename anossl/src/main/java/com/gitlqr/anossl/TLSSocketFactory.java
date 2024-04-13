@@ -41,10 +41,11 @@ import javax.net.ssl.TrustManager;
  */
 public class TLSSocketFactory extends SSLSocketFactory {
 
-    private final String[] enabledProtocols = {"TLSv1.2"}; // {"TLSv1.1", "TLSv1.2"}
+    private final String[] enabledProtocols; // {"TLSv1.1", "TLSv1.2"}
     private final SSLSocketFactory delegate;
 
-    public TLSSocketFactory(TrustManager[] tm) throws KeyManagementException, NoSuchAlgorithmException {
+    public TLSSocketFactory(String[] enabledProtocols, TrustManager[] tm) throws KeyManagementException, NoSuchAlgorithmException {
+        this.enabledProtocols = enabledProtocols;
         SSLContext context = SSLContext.getInstance("TLS");
         context.init(null, tm, new SecureRandom());
         delegate = context.getSocketFactory();
@@ -94,35 +95,38 @@ public class TLSSocketFactory extends SSLSocketFactory {
         if ((socket instanceof SSLSocket)) {
             // 20240405：
             // Android 4.4 及以下版本可能存在一些奇葩问题，需要自己实现了一个 DelegateSSLSocket 来解决，
-            // 但是 Android 5.0 及以上不要使用，OkHttp 在高版本中会调用一些 DelegateSSLSocket 没有复写的方法，导致 app 崩溃。
-            if (isGeAndroid5()) {
+            // 但是 Java 平台 或 Android 5.0 及以上 不要使用，OkHttp 在高版本中会调用一些 DelegateSSLSocket 没有复写的方法，导致 app 崩溃。
+            if (isLtAndroid5()) {
+                /**
+                 * FIX: 修复个别设备网络请求时闪退问题
+                 * java.lang.ClassCastException: int[] cannot be cast to java.lang.String[]
+                 *     at com.android.org.conscrypt.OpenSSLSocketImpl.getEnabledProtocols(OpenSSLSocketImpl.java:802)
+                 *     at okhttp3.ConnectionSpec.isCompatible(ConnectionSpec.java:207)
+                 */
+                socket = new DelegateSSLSocket((SSLSocket) socket) {
+                    @Override
+                    public void setEnabledProtocols(String[] protocols) {
+                        // super.setEnabledProtocols(protocols);
+                        super.setEnabledProtocols(enabledProtocols);
+                    }
+                };
+            } else {
                 ((SSLSocket) socket).setEnabledProtocols(enabledProtocols);
-                return socket;
             }
-            /**
-             * FIX: 修复个别设备网络请求时闪退问题
-             * java.lang.ClassCastException: int[] cannot be cast to java.lang.String[]
-             *     at com.android.org.conscrypt.OpenSSLSocketImpl.getEnabledProtocols(OpenSSLSocketImpl.java:802)
-             *     at okhttp3.ConnectionSpec.isCompatible(ConnectionSpec.java:207)
-             */
-            socket = new DelegateSSLSocket((SSLSocket) socket) {
-                @Override
-                public void setEnabledProtocols(String[] protocols) {
-                    // super.setEnabledProtocols(protocols);
-                    super.setEnabledProtocols(enabledProtocols);
-                }
-            };
         }
         return socket;
     }
 
-    private boolean isGeAndroid5() {
+    /**
+     * 是否小于 Android 5
+     */
+    private boolean isLtAndroid5() {
         try {
             Class<?> classVersion = Class.forName("android.os.Build$VERSION");
             Field fieldSdkInt = classVersion.getDeclaredField("SDK_INT");
             fieldSdkInt.setAccessible(true);
             int sdkInt = (int) fieldSdkInt.get(null);
-            return sdkInt >= 21;
+            return sdkInt < 21;
         } catch (Exception e) {
             // e.printStackTrace();
             return false;

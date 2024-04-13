@@ -14,17 +14,18 @@ class MainActivity : AppCompatActivity() {
 
     companion object {
         /**
-         * 支持协议 www.baidu.com   www.fresco-cn.org   api.oick.cn
-         * TLS1.3       No              No              Yes
-         * TLS1.2       Yes             Yes             Yes
-         * TLS1.1       Yes             Yes             No
-         * TLS1.0       Yes             Yes             No
-         * SSL3.0       Yes             No              No
-         * SSL2.0       No              No              No
+         * 支持协议 www.baidu.com   www.fresco-cn.org   api.github.com  api.oick.cn
+         * TLS1.3       No              No                  Yes             Yes
+         * TLS1.2       Yes             Yes                 Yes             Yes
+         * TLS1.1       Yes             Yes                 No              No
+         * TLS1.0       Yes             Yes                 No              No
+         * SSL3.0       Yes             No                  No              No
+         * SSL2.0       No              No                  No              No
          */
         // private const val TEST_URL = "https://www.baidu.com/"
-        // private const val TEST_URL = "https://www.fresco-cn.org/" // 这是一个https证书已经过期的网址
-        private const val TEST_URL = "https://api.oick.cn/"
+        private const val TEST_URL = "https://www.fresco-cn.org/" // 这是一个https证书已经过期的网址
+        // private const val TEST_URL = "https://api.github.com/"
+        // private const val TEST_URL = "https://api.oick.cn/"
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {

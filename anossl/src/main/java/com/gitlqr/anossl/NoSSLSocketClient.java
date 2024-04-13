@@ -47,12 +47,18 @@ public class NoSSLSocketClient {
         }
     }
 
+    public static SSLSocketFactory getTLSSocketFactory() {
+        return getTLSSocketFactory(new String[]{"TLSv1.2"});
+    }
+
     /**
      * 获取 TLS 协议的 SSLSocketFactory
+     *
+     * @param enabledProtocols 要启用的 tls 协议，例如：{"TLSv1.1", "TLSv1.2"}
      */
-    public static SSLSocketFactory getTLSSocketFactory() {
+    public static SSLSocketFactory getTLSSocketFactory(String[] enabledProtocols) {
         try {
-            return new TLSSocketFactory(getTrustManager());
+            return new TLSSocketFactory(enabledProtocols, getTrustManager());
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
